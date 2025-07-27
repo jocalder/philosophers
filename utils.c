@@ -51,5 +51,18 @@ void	free_data(t_table *data)
 {
 	if (data)
 		free(data);
-	printf("data_pointer after be freed: %p\n", data);
+}
+
+void	print_status(t_philo *philo, char *message, char *color)
+{
+	time_t	time;
+
+	time = 0;
+	pthread_mutex_lock(&philo->table->write);
+	if (!philo->table->sim_stop)
+	{
+		time = get_current_time();
+		printf("%s%ld %u %s%s\n", color, time, philo->id, message, RESET);
+	}
+	pthread_mutex_unlock(&philo->table->write);
 }

@@ -15,7 +15,7 @@ static void	print_values(t_table *data)
 	printf("Time to eat (ms): %d\n", data->time_to_eat);
 	printf("Time to sleep (ms): %d\n", data->time_to_sleep);
 	
-	if (data->num_meals < 0)
+	if (!data->num_meals)
 		printf("Optional meals: " YELLOW "Not specified\n" WHITE);
 	else
 		printf("Optional meals: %d\n", data->num_meals);
@@ -36,18 +36,23 @@ static void	print_values(t_table *data)
 int	main(int argc, char **argv)
 {
 	t_table	*data;
+	t_philo	*philos;
 
+	data = NULL;
+	philos = NULL;
 	if (argc < 5 || argc > 6)
 		return (write(2, ERROR1, ft_strlen(ERROR1)));
 	if (check_args(&data, argc, argv) != 0)
 	{
-		print_values(data);
-		free_data(data);
-		printf("here when the args are invalid in main\n");
+		if(data)
+			free_data(data);
 		return (1);
 	}
-	printf("data_pointer if everything is correct: %p\n", data);
+	if (init_philosophers(data, &philos) != 0)
+		return (free_resources(data, philos), 1);
 	print_values(data);
-	free_data(data);
+	data->start_time = get_current_time();
+	start_simulation(data, philos);
+	free_resources(data, philos);
 	return (0);
 }
