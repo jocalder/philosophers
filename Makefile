@@ -4,7 +4,7 @@ CLEAR	= \r\033[K
 
 NAME	= philo
 
-CC		= cc 
+CC		= gcc -g3 -fsanitize=address
 
 FLAGS	= -Wall -Wextra -Werror
 

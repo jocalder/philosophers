@@ -1,21 +1,11 @@
 #include "philo.h"
 
-void	take_forks(t_philo *philo)
+void	take_forks(t_philo *philo, pthread_mutex_t *first, pthread_mutex_t *second)
 {
-	if (philo->id % 2 != 2)
-	{
-		pthread_mutex_lock(&philo->table->forks[philo->fork_left]);
-		print_status(philo, "has taken a fork", YELLOW);
-		pthread_mutex_lock(&philo->table->forks[philo->fork_right]);
-		print_status(philo, "has taken a fork", YELLOW);
-	}
-	else
-	{
-		pthread_mutex_lock(&philo->table->forks[philo->fork_right]);
-		print_status(philo, "has taken a fork", YELLOW);
-		pthread_mutex_lock(&philo->table->forks[philo->fork_left]);
-		print_status(philo, "has taken a fork", YELLOW);
-	}
+	pthread_mutex_lock(first);
+	print_status(philo, "has taken a fork", YELLOW);
+	pthread_mutex_lock(second);
+	print_status(philo, "has taken a fork", YELLOW);
 }
 
 void	eat_meal(t_philo *philo)
@@ -28,10 +18,10 @@ void	eat_meal(t_philo *philo)
 	usleep(philo->table->time_to_eat * 1000);
 }
 
-void	release_forks(t_philo *philo)
+void	release_forks(t_philo *philo, pthread_mutex_t *first, pthread_mutex_t *second)
 {
-	pthread_mutex_unlock(&philo->table->forks[philo->fork_left]);
-    pthread_mutex_unlock(&philo->table->forks[philo->fork_right]);
+	pthread_mutex_unlock(first);
+	pthread_mutex_unlock(second);
 	print_status(philo, "is sleeping", MAGENTA);
 	usleep(philo->table->time_to_sleep * 1000);
 }

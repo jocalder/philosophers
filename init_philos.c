@@ -34,14 +34,17 @@ int	init_philosophers(t_table *table, t_philo **philos)
 		return (1);
 	table->start_time = get_current_time();
 	table->sim_stop = false;
+	init_mutex(table);
 	while (i < table->nbr_philos)
 	{
 		(*philos)[i].id = i + 1;
 		(*philos)[i].times_ate = 0;
 		(*philos)[i].last_meal = table->start_time;
 		(*philos)[i].table = table;
-		(*philos)[i].fork_left = i;
-		(*philos)[i].fork_right = (i + 1) % table->nbr_philos;
+		(*philos)[i].l_fork = &table->forks[i];
+		(*philos)[i].r_fork = &table->forks[(i + 1) % table->nbr_philos];
+		// (*philos)[i].fork_left = i;
+		// (*philos)[i].fork_right = (i + 1) % table->nbr_philos;
 		if (pthread_mutex_init(&(*philos)[i].meal_time, NULL) != 0)
 		{
 			while (--i >= 0)
@@ -50,5 +53,5 @@ int	init_philosophers(t_table *table, t_philo **philos)
 		}
 		i++;
 	}
-	return (init_mutex(table));
+	return (0);
 }

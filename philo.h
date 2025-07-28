@@ -42,10 +42,12 @@ typedef struct s_philo
 	pthread_t		thread;
 	int	id;
 	int	times_ate;
-	int	fork_left;
-	int	fork_right;
+	// int	fork_left;
+	// int	fork_right;
 	time_t			last_meal;
 	pthread_mutex_t	meal_time;
+	pthread_mutex_t	*l_fork;
+	pthread_mutex_t	*r_fork;
 	t_table			*table;
 }	t_philo;
 
@@ -65,9 +67,9 @@ void	*monitor_philosophers(void *arg);
 int		start_simulation(t_table *table, t_philo *philos);
 
 /*actions*/
-void	take_forks(t_philo *philo);
+void	take_forks(t_philo *philo, pthread_mutex_t *first, pthread_mutex_t *second);
 void	eat_meal(t_philo *philo);
-void	release_forks(t_philo *philo);
+void	release_forks(t_philo *philo, pthread_mutex_t *first, pthread_mutex_t *second);
 void	think_philosopher(t_philo *philo);
 
 /*utils*/

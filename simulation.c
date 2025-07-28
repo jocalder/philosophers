@@ -1,12 +1,36 @@
 #include "philo.h"
 
+static void	set_forks(t_philo *philo, pthread_mutex_t **first, pthread_mutex_t **second, bool par)
+{
+	if (par)
+	{
+		*first = philo->r_fork;
+		*second = philo->l_fork;
+		usleep(1000);
+	}
+	else
+	{
+		*first = philo->l_fork;
+		*second = philo->r_fork;
+	}
+}
+
 void	*philosopher_routine(void *arg)
 {
-	t_philo *philo;
+	t_philo 		*philo;
+	pthread_mutex_t	*first;
+	pthread_mutex_t	*second;
 
 	philo = (t_philo *)arg;
-	if (philo->id % 2 == 0)
-		usleep(1000);
+	set_forks(philo, &first, &second, (philo->id %2 == 0));
+	// first = philo->l_fork;
+	// second = philo->r_fork;
+	// if (philo->id % 2 == 0)
+	// {
+	// 	first = philo->r_fork;
+	// 	second = philo->l_fork;
+	// 	usleep(1000);
+	// }
 	while (1)
 	{
 		pthread_mutex_lock(&philo->table->check);
@@ -16,9 +40,9 @@ void	*philosopher_routine(void *arg)
 			break ;
 		}
 		pthread_mutex_unlock(&philo->table->check);
-		take_forks(philo);
+		take_forks(philo, first, second);
 		eat_meal(philo);
-		release_forks(philo);
+		release_forks(philo, first, second);
 		think_philosopher(philo);
 	}
 	return (NULL);
@@ -77,19 +101,17 @@ int	start_simulation(t_table *table, t_philo *philos)
 {
 	pthread_t	monitor;
 	int	i;
-	int borraesto;
 
 	i = 0;
-	borraesto = 0;
 	while (i < table->nbr_philos)
 	{
-		if (pthread_create(&philos[i].thread, NULL, philosopher_routine,
-			&philos[i]) != 0)
-			borraesto = 1;
+		pthread_create(&philos[i].thread, NULL, philosopher_routine,
+			&philos[i]);
+			// destroy_cositas Y recuerda el if de arriba
 		i++;
 	}
-	if (pthread_create(&monitor, NULL, monitor_philosophers, philos) == 0)
-		borraesto = 0;
+	pthread_create(&monitor, NULL, monitor_philosophers, philos);
+		// destroy_cositas y recuerda el if de arriba
 	// monitor_philosophers(table, philos);
 	i = 0;
 	while (i < table->nbr_philos)
