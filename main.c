@@ -43,11 +43,7 @@ int	main(int argc, char **argv)
 	if (argc < 5 || argc > 6)
 		return (write(2, ERROR1, ft_strlen(ERROR1)));
 	if (check_args(&data, argc, argv) != 0)
-	{
-		if(data)
-			free_data(data);
 		return (1);
-	}
 	if (init_philosophers(data, &philos) != 0)
 		return (free_resources(data, philos), 1);
 	print_values(data);

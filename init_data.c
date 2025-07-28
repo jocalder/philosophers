@@ -15,10 +15,11 @@ int	check_args(t_table **data, int argc, char *argv[])
 	if (!*data)
 		return (write(2, ERROR3, ft_strlen(ERROR3)));
 	(*data)->sim_stop = false;
-	(*data)->nbr_philos = (unsigned int)ft_atol(argv[1]);
+	(*data)->nbr_philos = (int)ft_atol(argv[1]);
 	(*data)->time_to_die = (int)ft_atol(argv[2]);
 	(*data)->time_to_eat = (int)ft_atol(argv[3]);
 	(*data)->time_to_sleep = (int)ft_atol(argv[4]);
+	(*data)->num_meals = -1;
 	if (argc == 6)
 		(*data)->num_meals = (int)ft_atol(argv[5]);
 	if ((*data)->nbr_philos < 1 || (*data)->time_to_die < 0
@@ -35,5 +36,3 @@ time_t	get_current_time(void)
 	gettimeofday(&time, NULL);
 	return (time.tv_sec * 1000 + time.tv_usec / 1000);
 }
-
-

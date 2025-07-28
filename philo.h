@@ -29,7 +29,7 @@ typedef struct s_table
 	int				time_to_die;
 	int				time_to_eat;
 	int				time_to_sleep;
-	unsigned int	num_meals;
+	int	num_meals;
 	time_t			start_time;
 	pthread_mutex_t	*forks;
 	pthread_mutex_t	write;
@@ -40,10 +40,10 @@ typedef struct s_table
 typedef struct s_philo
 {
 	pthread_t		thread;
-	unsigned int	id;
-	unsigned int	times_ate;
-	unsigned int	fork_left;
-	unsigned int	fork_right;
+	int	id;
+	int	times_ate;
+	int	fork_left;
+	int	fork_right;
 	time_t			last_meal;
 	pthread_mutex_t	meal_time;
 	t_table			*table;
@@ -61,7 +61,7 @@ int		init_philosophers(t_table *table, t_philo **philos);
 /*routines*/
 void	*philosopher_routine(void *arg);
 void	check_philosopher(t_table *table, t_philo *philos);
-void	monitor_philosophers(t_table *table, t_philo *philos);
+void	*monitor_philosophers(void *arg);
 int		start_simulation(t_table *table, t_philo *philos);
 
 /*actions*/

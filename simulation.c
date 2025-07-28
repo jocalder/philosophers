@@ -6,7 +6,7 @@ void	*philosopher_routine(void *arg)
 
 	philo = (t_philo *)arg;
 	if (philo->id % 2 == 0)
-		return ((void*)15000);
+		usleep(1000);
 	while (1)
 	{
 		pthread_mutex_lock(&philo->table->check);
@@ -19,7 +19,6 @@ void	*philosopher_routine(void *arg)
 		take_forks(philo);
 		eat_meal(philo);
 		release_forks(philo);
-		//sleep_philosopher(philo);
 		think_philosopher(philo);
 	}
 	return (NULL);
@@ -27,27 +26,28 @@ void	*philosopher_routine(void *arg)
 
 void	check_philosopher(t_table *table, t_philo *philos)
 {
-	unsigned int	i;
-
-	i = 0;
 	pthread_mutex_lock(&philos->meal_time);
 	if (get_current_time() - philos->last_meal > table->time_to_die)
 	{
 		pthread_mutex_lock(&table->write);
-		print_status(&philos[i], "died", RED);
+		print_status(philos, "died", RED);
 		pthread_mutex_unlock(&table->write);
-		pthread_mutex_unlock(&table->check);
+		pthread_mutex_lock(&table->check);
 		table->sim_stop = true;
 		pthread_mutex_unlock(&table->check);
 	}
 	pthread_mutex_unlock(&philos->meal_time);
 }
 
-void	monitor_philosophers(t_table *table, t_philo *philos)
+void	*monitor_philosophers(void *arg)
 {
+	t_table	*table;
+	t_philo	*philos;
 	int		i;
-	bool				all_ate;
+	bool	all_ate;
 
+	philos = (t_philo *)arg;
+	table = philos->table;
 	while (1)
 	{
 		i = 0;
@@ -66,29 +66,37 @@ void	monitor_philosophers(t_table *table, t_philo *philos)
 		{
 			table->sim_stop = true;
 			pthread_mutex_unlock(&table->check);
-			return ;
+			break ;
 		}
 		usleep(1000);
 	}
+	return (NULL);
 }
 
 int	start_simulation(t_table *table, t_philo *philos)
 {
+	pthread_t	monitor;
 	int	i;
+	int borraesto;
 
 	i = 0;
+	borraesto = 0;
 	while (i < table->nbr_philos)
 	{
 		if (pthread_create(&philos[i].thread, NULL, philosopher_routine,
 			&philos[i]) != 0)
+			borraesto = 1;
 		i++;
 	}
-	monitor_philosophers(table, philos);
+	if (pthread_create(&monitor, NULL, monitor_philosophers, philos) == 0)
+		borraesto = 0;
+	// monitor_philosophers(table, philos);
 	i = 0;
 	while (i < table->nbr_philos)
 	{
 		pthread_join(philos[i].thread, NULL);
 		i++;
 	}
+	pthread_join(monitor, NULL);
 	return (0);
 }

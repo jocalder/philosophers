@@ -2,10 +2,20 @@
 
 void	take_forks(t_philo *philo)
 {
-	pthread_mutex_lock(&philo->table->forks[philo->fork_left]);
-	print_status(philo, "has taken a fork", YELLOW);
-	pthread_mutex_lock(&philo->table->forks[philo->fork_right]);
-	print_status(philo, "has taken a fork", YELLOW);
+	if (philo->id % 2 != 2)
+	{
+		pthread_mutex_lock(&philo->table->forks[philo->fork_left]);
+		print_status(philo, "has taken a fork", YELLOW);
+		pthread_mutex_lock(&philo->table->forks[philo->fork_right]);
+		print_status(philo, "has taken a fork", YELLOW);
+	}
+	else
+	{
+		pthread_mutex_lock(&philo->table->forks[philo->fork_right]);
+		print_status(philo, "has taken a fork", YELLOW);
+		pthread_mutex_lock(&philo->table->forks[philo->fork_left]);
+		print_status(philo, "has taken a fork", YELLOW);
+	}
 }
 
 void	eat_meal(t_philo *philo)
