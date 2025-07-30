@@ -92,6 +92,7 @@ void	*monitor_philosophers(void *arg)
 			pthread_mutex_unlock(&table->check);
 			break ;
 		}
+		pthread_mutex_unlock(&table->check);
 		usleep(1000);
 	}
 	return (NULL);

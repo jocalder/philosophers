@@ -59,7 +59,7 @@ void	free_data(t_table *data)
 
 void	print_status(t_philo *philo, char *message, char *color)
 {
-	time_t	time;
+	long	time;
 
 	time = 0;
 	pthread_mutex_lock(&philo->table->write);
