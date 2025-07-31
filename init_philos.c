@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   init_philos.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jocalder <jocalder@student.42madrid.com    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/31 16:57:28 by jocalder          #+#    #+#             */
+/*   Updated: 2025/07/31 16:57:28 by jocalder         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo.h"
 
 int	init_mutex(t_table *table)
@@ -18,8 +30,8 @@ int	init_mutex(t_table *table)
 		}
 		i++;
 	}
-	if (pthread_mutex_init(&table->write, NULL) ||
-		pthread_mutex_init(&table->check, NULL))
+	if (pthread_mutex_init(&table->write, NULL) != 0 ||
+		pthread_mutex_init(&table->check, NULL) != 0)
 		return (1);
 	return (0);
 }
@@ -43,8 +55,6 @@ int	init_philosophers(t_table *table, t_philo **philos)
 		(*philos)[i].table = table;
 		(*philos)[i].l_fork = &table->forks[i];
 		(*philos)[i].r_fork = &table->forks[(i + 1) % table->nbr_philos];
-		// (*philos)[i].fork_left = i;
-		// (*philos)[i].fork_right = (i + 1) % table->nbr_philos;
 		if (pthread_mutex_init(&(*philos)[i].meal_time, NULL) != 0)
 		{
 			while (--i >= 0)

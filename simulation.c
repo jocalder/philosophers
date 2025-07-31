@@ -1,36 +1,40 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   simulation.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jocalder <jocalder@student.42madrid.com    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/31 16:57:17 by jocalder          #+#    #+#             */
+/*   Updated: 2025/07/31 16:57:17 by jocalder         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo.h"
 
-static void	set_forks(t_philo *philo, pthread_mutex_t **first, pthread_mutex_t **second, bool par)
+void	forks(t_philo *p, pthread_mutex_t **f, pthread_mutex_t **s, bool even)
 {
-	if (par)
+	if (even)
 	{
-		*first = philo->r_fork;
-		*second = philo->l_fork;
+		*f = p->r_fork;
+		*s = p->l_fork;
 		usleep(1000);
 	}
 	else
 	{
-		*first = philo->l_fork;
-		*second = philo->r_fork;
+		*f = p->l_fork;
+		*s = p->r_fork;
 	}
 }
 
 void	*philosopher_routine(void *arg)
 {
-	t_philo 		*philo;
+	t_philo			*philo;
 	pthread_mutex_t	*first;
 	pthread_mutex_t	*second;
 
 	philo = (t_philo *)arg;
-	set_forks(philo, &first, &second, (philo->id %2 == 0));
-	// first = philo->l_fork;
-	// second = philo->r_fork;
-	// if (philo->id % 2 == 0)
-	// {
-	// 	first = philo->r_fork;
-	// 	second = philo->l_fork;
-	// 	usleep(1000);
-	// }
+	forks(philo, &first, &second, (philo->id %2 == 0));
 	while (1)
 	{
 		pthread_mutex_lock(&philo->table->check);
@@ -101,19 +105,21 @@ void	*monitor_philosophers(void *arg)
 int	start_simulation(t_table *table, t_philo *philos)
 {
 	pthread_t	monitor;
-	int	i;
+	int			i;
 
 	i = 0;
 	while (i < table->nbr_philos)
 	{
-		pthread_create(&philos[i].thread, NULL, philosopher_routine,
-			&philos[i]);
-			// destroy_cositas Y recuerda el if de arriba
+		if (pthread_create(&philos[i].thread, NULL, philosopher_routine,
+				&philos[i]) != 0)
+		{
+			while (--i >= 0)
+				pthread_mutex_destroy(&philos[i].thread);
+		}
 		i++;
 	}
-	pthread_create(&monitor, NULL, monitor_philosophers, philos);
-		// destroy_cositas y recuerda el if de arriba
-	// monitor_philosophers(table, philos);
+	if (pthread_create(&monitor, NULL, monitor_philosophers, philos) != 0) ||
+		pthread_mutex_destroy(&monitor)
 	i = 0;
 	while (i < table->nbr_philos)
 	{

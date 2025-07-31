@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   free_data.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jocalder <jocalder@student.42madrid.com    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/31 16:58:40 by jocalder          #+#    #+#             */
+/*   Updated: 2025/07/31 16:58:40 by jocalder         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo.h"
 
 void	free_philosophers(t_philo *philos, int count)
@@ -16,7 +28,7 @@ void	free_philosophers(t_philo *philos, int count)
 void	free_table(t_table *table)
 {
 	if (!table)
-	return ;
+		return ;
 	if (table->forks)
 	{
 		pthread_mutex_destroy(&table->forks[table->nbr_philos - 1]);
@@ -35,3 +47,4 @@ void	free_resources(t_table *table, t_philo *philos)
 		free_philosophers(philos, table->nbr_philos);
 	free_table(table);
 }
+

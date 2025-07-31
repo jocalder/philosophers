@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   utils.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jocalder <jocalder@student.42madrid.com    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/31 16:57:37 by jocalder          #+#    #+#             */
+/*   Updated: 2025/07/31 16:57:37 by jocalder         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo.h"
 
 bool	is_valid_number(char *str)
@@ -22,7 +34,7 @@ bool	is_valid_number(char *str)
 
 long	ft_atol(char *str)
 {
-	long 	nbr;
+	long	nbr;
 	int		i;
 
 	nbr = 0;
@@ -65,8 +77,8 @@ void	print_status(t_philo *philo, char *message, char *color)
 	pthread_mutex_lock(&philo->table->write);
 	if (!philo->table->sim_stop)
 	{
-		time = get_current_time();
-		printf("%s%ld %d %s%s\n", color, time, philo->id, message, RESET);
+		time = get_current_time() - philo->table->start_time;
+		printf("%ld %s%d %s%s\n", time, color, philo->id, message, RESET);
 	}
 	pthread_mutex_unlock(&philo->table->write);
 }

@@ -1,4 +1,16 @@
-#ifndef	PHILO_H
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo.h                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jocalder <jocalder@student.42madrid.com    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/31 16:58:52 by jocalder          #+#    #+#             */
+/*   Updated: 2025/07/31 16:58:52 by jocalder         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef PHILO_H
 # define PHILO_H
 
 # include <stdio.h>
@@ -19,8 +31,8 @@
 # define CYAN			"\001\033[36m\002"
 # define WHITE			"\001\033[37m\002"
 
-# define ERROR1	"Usage: number_philo, t_die, t_eat, t_sleep, [meals_of_each_philosopher]\n"
-# define ERROR2 "Usage: Invalid numbers, please use a integer between 0 and 2147483647.\n"
+# define ERROR1	"Usage: number_philo, t_die, t_eat, t_sleep, [meals]\n"
+# define ERROR2 "Usage: Use valid integer between 0 and 2147483647.\n"
 # define ERROR3	"Cannot be allocated"
 
 typedef struct s_table
@@ -29,7 +41,7 @@ typedef struct s_table
 	int				time_to_die;
 	int				time_to_eat;
 	int				time_to_sleep;
-	int	num_meals;
+	int				num_meals;
 	time_t			start_time;
 	pthread_mutex_t	*forks;
 	pthread_mutex_t	write;
@@ -40,17 +52,14 @@ typedef struct s_table
 typedef struct s_philo
 {
 	pthread_t		thread;
-	int	id;
-	int	times_ate;
-	// int	fork_left;
-	// int	fork_right;
+	int				id;
+	int				times_ate;
 	time_t			last_meal;
 	pthread_mutex_t	meal_time;
 	pthread_mutex_t	*l_fork;
 	pthread_mutex_t	*r_fork;
 	t_table			*table;
 }	t_philo;
-
 
 /*init_data*/
 int		check_args(t_table **data, int argc, char *argv[]);
@@ -65,11 +74,12 @@ void	*philosopher_routine(void *arg);
 void	check_philosopher(t_table *table, t_philo *philos);
 void	*monitor_philosophers(void *arg);
 int		start_simulation(t_table *table, t_philo *philos);
+void	forks(t_philo *p, pthread_mutex_t **f, pthread_mutex_t **s, bool even);
 
 /*actions*/
-void	take_forks(t_philo *philo, pthread_mutex_t *first, pthread_mutex_t *second);
+void	take_forks(t_philo *philo, pthread_mutex_t *f, pthread_mutex_t *s);
 void	eat_meal(t_philo *philo);
-void	release_forks(t_philo *philo, pthread_mutex_t *first, pthread_mutex_t *second);
+void	release_forks(t_philo *philo, pthread_mutex_t *f, pthread_mutex_t *s);
 void	think_philosopher(t_philo *philo);
 
 /*utils*/
@@ -84,4 +94,4 @@ void	free_philosophers(t_philo *philo, int count);
 void	free_table(t_table *table);
 void	free_resources(t_table *table, t_philo *philos);
 
-# endif
+#endif
