@@ -12,33 +12,79 @@
 
 #include "philo.h"
 
-void	take_forks(t_philo *philo, pthread_mutex_t *f, pthread_mutex_t *s)
+void	forks(t_philo *p, pthread_mutex_t **f, pthread_mutex_t **s, bool even)
+{
+	if (even)
+	{
+		*f = p->r_fork;
+		*s = p->l_fork;
+		usleep(100);
+	}
+	else
+	{
+		*f = p->l_fork;
+		*s = p->r_fork;
+	}
+}
+
+bool	take_forks(t_philo *philo,
+					pthread_mutex_t *first, pthread_mutex_t *second)
 {
 	pthread_mutex_lock(first);
-	print_status(philo, "has taken a fork", YELLOW);
+	if (!is_simulation_running(philo))
+	{
+		pthread_mutex_unlock(first);
+		return (false);
+	}
+	print_action(philo, "has taken a fork", YELLOW);
 	pthread_mutex_lock(second);
-	print_status(philo, "has taken a fork", YELLOW);
+	if (!is_simulation_running(philo))
+	{
+		pthread_mutex_unlock(first);
+		pthread_mutex_unlock(second);
+		return (false);
+	}
+	print_action(philo, "has taken a fork", YELLOW);
+	if (!is_simulation_running(philo))
+	{
+		pthread_mutex_unlock(first);
+		pthread_mutex_unlock(second);
+		return (false);
+	}
+	return (true);
 }
 
-void	eat_meal(t_philo *philo)
+bool	is_eating(t_philo *philo, t_table *table,
+					pthread_mutex_t *first, pthread_mutex_t *second)
 {
-	pthread_mutex_lock(&philo->meal_time);
-	philo->last_meal = get_current_time();
-	print_status(philo, "is eating", GREEN);
+	pthread_mutex_lock(&table->meal_lock);
+	philo->last_meal_time = get_current_time();
+	if (!is_simulation_running(philo))
+	{
+		pthread_mutex_unlock(first);
+		pthread_mutex_unlock(second);
+		pthread_mutex_unlock(&table->meal_lock);
+		return (false);
+	}
+	print_action(philo, "is eating", GREEN);
 	philo->times_ate++;
-	pthread_mutex_unlock(&philo->meal_time);
-	usleep(philo->table->time_to_eat * 1000);
-}
-
-void	release_forks(t_philo *philo, pthread_mutex_t *f, pthread_mutex_t *s)
-{
+	pthread_mutex_unlock(&table->meal_lock);
+	wait_action(table->time_to_eat, philo);
 	pthread_mutex_unlock(first);
 	pthread_mutex_unlock(second);
-	print_status(philo, "is sleeping", MAGENTA);
-	usleep(philo->table->time_to_sleep * 1000);
+	return (true);
 }
 
-void	think_philosopher(t_philo *philo)
+bool	is_sleeping(t_philo *philo, t_table *table)
 {
-	print_status(philo, "is thinking", BLUE);
+	if (!is_simulation_running(philo))
+		return (false);
+	print_action(philo, "is sleeping", MAGENTA);
+	wait_action(table->time_to_sleep, philo);
+	return (true);
+}
+
+void	is_thinking(t_philo *philo)
+{
+	print_action(philo, "is thinking", BLUE);
 }

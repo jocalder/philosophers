@@ -5,80 +5,66 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: jocalder <jocalder@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/07/31 16:57:37 by jocalder          #+#    #+#             */
-/*   Updated: 2025/07/31 16:57:37 by jocalder         ###   ########.fr       */
+/*   Created: 2025/07/31 16:57:24 by jocalder          #+#    #+#             */
+/*   Updated: 2025/07/31 16:57:24 by jocalder         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-bool	is_valid_number(char *str)
+void	*single_philo_case(t_philo *philo)
 {
-	size_t	i;
-
-	i = 0;
-	if (!str || !*str)
-		return (0);
-	while (str[i] && ((str[i] >= 9 && str[i] <= 13) || str[i] == 32))
-		i++;
-	if (str[i] == '+')
-		i++;
-	while (str[i])
-	{
-		if (str[i] < '0' || str[i] > '9')
-			return (false);
-		i++;
-	}
-	return (true);
+	pthread_mutex_lock(philo->l_fork);
+	print_action(philo, "has taken a fork", YELLOW);
+	while (is_simulation_running(philo))
+		usleep(100);
+	pthread_mutex_unlock(philo->l_fork);
+	return (NULL);
 }
 
-long	ft_atol(char *str)
+long long	get_current_time(void)
 {
-	long	nbr;
-	int		i;
+	struct timeval	time;
 
-	nbr = 0;
-	i = 0;
-	while (str[i] && ((str[i] >= 9 && str[i] <= 13) || str[i] == 32))
-		i++;
-	if (str[i] == '+')
-		i++;
-	while (str[i] >= '0' && str[i] <= '9')
-	{
-		nbr = nbr * 10 + (str[i] - '0');
-		if (nbr > INT_MAX)
-			return (-1);
-		i++;
-	}
-	return (nbr);
+	gettimeofday(&time, NULL);
+	return ((time.tv_sec * 1000LL) + (time.tv_usec / 1000));
 }
 
-int	ft_strlen(char *str)
+void	print_action(t_philo *philo, char *message, char *color)
 {
-	int	i;
-
-	i = 0;
-	while (str[i])
-		i++;
-	return (i);
-}
-
-void	free_data(t_table *data)
-{
-	if (data)
-		free(data);
-}
-
-void	print_status(t_philo *philo, char *message, char *color)
-{
-	long	time;
+	long long	time;
 
 	time = 0;
 	pthread_mutex_lock(&philo->table->write);
-	if (!philo->table->sim_stop)
+	if (!philo->table->death)
 	{
 		time = get_current_time() - philo->table->start_time;
-		printf("%ld %s%d %s%s\n", time, color, philo->id, message, RESET);
+		printf("%lld %s%d %s%s\n", time, color, philo->id, message, RESET);
 	}
 	pthread_mutex_unlock(&philo->table->write);
+}
+
+void	wait_action(long long duration, t_philo *philo)
+{
+	long long	start;
+
+	start = get_current_time();
+	while ((get_current_time() - start) < duration)
+	{
+		if (!is_simulation_running(philo))
+			break ;
+		usleep(100);
+	}
+}
+
+bool	is_simulation_running(t_philo *philo)
+{
+	t_table	*table;
+	bool	running;
+
+	table = philo->table;
+	pthread_mutex_lock(&table->check);
+	running = !(table->death || table->all_ate);
+	pthread_mutex_unlock(&table->check);
+	return (running);
 }

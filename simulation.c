@@ -12,120 +12,130 @@
 
 #include "philo.h"
 
-void	forks(t_philo *p, pthread_mutex_t **f, pthread_mutex_t **s, bool even)
-{
-	if (even)
-	{
-		*f = p->r_fork;
-		*s = p->l_fork;
-		usleep(1000);
-	}
-	else
-	{
-		*f = p->l_fork;
-		*s = p->r_fork;
-	}
-}
-
-void	*philosopher_routine(void *arg)
+static void	*philosopher_routine(void *arg)
 {
 	t_philo			*philo;
+	t_table			*table;
 	pthread_mutex_t	*first;
 	pthread_mutex_t	*second;
 
 	philo = (t_philo *)arg;
-	forks(philo, &first, &second, (philo->id %2 == 0));
-	while (1)
+	table = philo->table;
+	while (get_current_time() < table->start_time)
+		usleep(100);
+	forks(philo, &first, &second, (philo->id % 2 == 0));
+	if (table->nbr_philos == 1)
+		return (single_philo_case(philo));
+	while (is_simulation_running(philo))
 	{
-		pthread_mutex_lock(&philo->table->check);
-		if (philo->table->sim_stop)
-		{
-			pthread_mutex_unlock(&philo->table->check);
-			break ;
-		}
-		pthread_mutex_unlock(&philo->table->check);
-		take_forks(philo, first, second);
-		eat_meal(philo);
-		release_forks(philo, first, second);
-		think_philosopher(philo);
+		if (!take_forks(philo, first, second))
+		return (NULL);
+		if (!is_eating(philo, table, first, second))
+			return (NULL);
+		if (is_sleeping(philo, table))
+			return (NULL);
+		is_thinking(philo);
 	}
 	return (NULL);
 }
 
-void	check_philosopher(t_table *table, t_philo *philos)
+static bool	check_philo_death(t_philo *philo)
 {
-	pthread_mutex_lock(&philos->meal_time);
-	if (get_current_time() - philos->last_meal > table->time_to_die)
+	long long	now;
+	t_table		*table;
+	long long	last_meal;
+
+	table = philo->table;
+	now = get_current_time();
+	pthread_mutex_lock(&table->meal_lock);
+	last_meal = philo->last_meal_time;
+	pthread_mutex_lock(&table->meal_lock);
+	if ((now - last_meal) > table->time_to_die)
 	{
-		pthread_mutex_lock(&table->write);
-		print_status(philos, "died", RED);
-		pthread_mutex_unlock(&table->write);
 		pthread_mutex_lock(&table->check);
-		table->sim_stop = true;
-		pthread_mutex_unlock(&table->check);
+		if (!table->death)
+		{
+			table->death = true;
+			pthread_mutex_unlock(&table->check);
+			print_action(philo, "died", RED);
+		}
+		else
+			pthread_mutex_unlock(&table->check);
 	}
-	pthread_mutex_unlock(&philos->meal_time);
+	return (false);
+}
+static bool	check_all_ate(t_philo *philo, t_table *table)
+{
+	int	i;
+	int	full;
+
+	i = 0;
+	full = 0;
+	while (i < table->nbr_philos)
+	{
+		pthread_mutex_lock(&table->meal_lock);
+		if (table->num_meals != -1 && philo[i].times_ate >= table->num_meals)
+			full++;
+		pthread_mutex_unlock(&table->meal_lock);
+		i++;
+	}
+	if (table->num_meals != -1 && full == table->nbr_philos)
+	{
+		pthread_mutex_lock(&table->check);
+		table->all_ate = true;
+		pthread_mutex_unlock(&table->check);
+		return (true);
+	}
+	return (false);
 }
 
-void	*monitor_philosophers(void *arg)
+static void	*monitor_philosophers(void *arg)
 {
 	t_table	*table;
-	t_philo	*philos;
+	t_philo	*philo;
 	int		i;
-	bool	all_ate;
 
-	philos = (t_philo *)arg;
-	table = philos->table;
+	philo = (t_philo *)arg;
+	table = philo[0].table;
 	while (1)
 	{
+		if (check_all_ate(philo, table))
+			return (NULL);
 		i = 0;
-		all_ate = true;
 		while (i < table->nbr_philos)
 		{
-			check_philosopher(table, &philos[i]);
-			pthread_mutex_lock(&philos[i].meal_time);
-			if (table->num_meals > 0 && philos[i].times_ate < table->num_meals)
-				all_ate = false;
-			pthread_mutex_unlock(&philos[i].meal_time);
+			if (check_philo_death(&philo[i]))
+				return (NULL);
 			i++;
 		}
-		pthread_mutex_lock(&table->check);
-		if (table->sim_stop || (table->num_meals > 0 && all_ate))
-		{
-			table->sim_stop = true;
-			pthread_mutex_unlock(&table->check);
-			break ;
-		}
-		pthread_mutex_unlock(&table->check);
 		usleep(1000);
 	}
 	return (NULL);
 }
 
-int	start_simulation(t_table *table, t_philo *philos)
+void	start_simulation(t_table *table, t_philo *philos)
 {
 	pthread_t	monitor;
 	int			i;
 
 	i = 0;
+	(*table).start_time = get_current_time();
 	while (i < table->nbr_philos)
 	{
+		philos[i].last_meal_time = table->start_time;
 		if (pthread_create(&philos[i].thread, NULL, philosopher_routine,
-				&philos[i]) != 0)
-		{
-			while (--i >= 0)
-				pthread_mutex_destroy(&philos[i].thread);
-		}
+			&philos[i]))
+			destroy_all_mutex(table, philos, i);
 		i++;
 	}
-	if (pthread_create(&monitor, NULL, monitor_philosophers, philos) != 0) ||
-		pthread_mutex_destroy(&monitor)
+	if (pthread_create(&monitor, NULL, monitor_philosophers, philos))
+		destroy_all_mutex(table, philos, i);
+	
 	i = 0;
 	while (i < table->nbr_philos)
-	{
-		pthread_join(philos[i].thread, NULL);
-		i++;
-	}
+		pthread_join(philos[i++].thread, NULL);
 	pthread_join(monitor, NULL);
-	return (0);
+	free(philos);
+	destroy_mutex_info(table, i);
+	return ;
 }

@@ -34,6 +34,9 @@
 # define ERROR1	"Usage: number_philo, t_die, t_eat, t_sleep, [meals]\n"
 # define ERROR2 "Usage: Use valid integer between 0 and 2147483647.\n"
 # define ERROR3	"Cannot be allocated"
+# define ERROR4 "Error: nbr of philosphers should not exceed 200\n"
+
+# define PHILO_MAX 200
 
 typedef struct s_table
 {
@@ -42,56 +45,60 @@ typedef struct s_table
 	int				time_to_eat;
 	int				time_to_sleep;
 	int				num_meals;
-	time_t			start_time;
-	pthread_mutex_t	*forks;
+	bool			death;
+	bool			all_ate;
+	long long		start_time;
+	pthread_mutex_t	meal_lock;
 	pthread_mutex_t	write;
 	pthread_mutex_t	check;
-	bool			sim_stop;
+	pthread_mutex_t	*forks;
 }	t_table;
 
 typedef struct s_philo
 {
-	pthread_t		thread;
 	int				id;
 	int				times_ate;
-	time_t			last_meal;
-	pthread_mutex_t	meal_time;
+	long long		last_meal_time;
+	pthread_t		thread;
 	pthread_mutex_t	*l_fork;
 	pthread_mutex_t	*r_fork;
 	t_table			*table;
 }	t_philo;
 
-/*init_data*/
-int		check_args(t_table **data, int argc, char *argv[]);
-time_t	get_current_time(void);
 
 /*init_philos*/
-int		init_mutex(t_table *table);
-int		init_philosophers(t_table *table, t_philo **philos);
+void		init_args(t_table *data, char **argv);
+int			init_philosophers(t_table *table, t_philo **philos);
 
-/*routines*/
-void	*philosopher_routine(void *arg);
-void	check_philosopher(t_table *table, t_philo *philos);
-void	*monitor_philosophers(void *arg);
-int		start_simulation(t_table *table, t_philo *philos);
-void	forks(t_philo *p, pthread_mutex_t **f, pthread_mutex_t **s, bool even);
+/*simulation*/
+void		start_simulation(t_table *table, t_philo *philos);
+void		forks(t_philo *p, pthread_mutex_t **f,
+				pthread_mutex_t **s, bool even);
 
 /*actions*/
-void	take_forks(t_philo *philo, pthread_mutex_t *f, pthread_mutex_t *s);
-void	eat_meal(t_philo *philo);
-void	release_forks(t_philo *philo, pthread_mutex_t *f, pthread_mutex_t *s);
-void	think_philosopher(t_philo *philo);
+bool		take_forks(t_philo *philo,
+				pthread_mutex_t *first, pthread_mutex_t *second);
+bool		is_eating(t_philo *philo, t_table *table,
+				pthread_mutex_t *first, pthread_mutex_t *second);
+bool		is_sleeping(t_philo *philo, t_table *table);
+void		is_thinking(t_philo *philo);
 
-/*utils*/
-bool	is_valid_number(char *str);
-int		ft_strlen(char *str);
-long	ft_atol(char *str);
-void	free_data(t_table *data);
-void	print_status(t_philo *philo, char *message, char *color);
+/*parsing*/
+bool		is_valid_number(char *str);
+long		ft_atol(char *str);
+int			ft_strlen(char *str);
+void		check_args(int argc, char *argv[]);
 
 /*free_data*/
-void	free_philosophers(t_philo *philo, int count);
-void	free_table(t_table *table);
-void	free_resources(t_table *table, t_philo *philos);
+void		destroy_mutex_lock(t_table *table);
+void		destroy_mutex_info(t_table *table, int i);
+void		destroy_all_mutex(t_table *table, t_philo *philos, int i);
+
+/*utils*/
+long long	get_current_time(void);
+void		print_action(t_philo *philo, char *message, char *color);
+void		wait_action(long long duration, t_philo *philo);
+bool		is_simulation_running(t_philo *philo);
+void		*single_philo_case(t_philo *philo);
 
 #endif

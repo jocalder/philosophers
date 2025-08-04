@@ -12,39 +12,33 @@
 
 #include "philo.h"
 
-void	free_philosophers(t_philo *philos, int count)
-{
-	if (!philos)
-		return ;
-	if (count > 0)
-	{
-		pthread_mutex_destroy(&philos[count - 1].meal_time);
-		free_philosophers(philos, count - 1);
-	}
-	else
-		free(philos);
-}
-
-void	free_table(t_table *table)
+void	destroy_mutex_lock(t_table *table)
 {
 	if (!table)
 		return ;
-	if (table->forks)
-	{
-		pthread_mutex_destroy(&table->forks[table->nbr_philos - 1]);
-		free(table->forks);
-	}
+	pthread_mutex_destroy(&table->meal_lock);
 	pthread_mutex_destroy(&table->write);
 	pthread_mutex_destroy(&table->check);
-	free(table);
 }
 
-void	free_resources(t_table *table, t_philo *philos)
+void	destroy_mutex_info(t_table *table, int i)
+{
+	if (!table)
+		return ;
+	destroy_mutex_lock(table);
+	if (i <= 0)
+		return (free(table->forks));
+	while (--i >= 0)
+		pthread_mutex_destroy(&table->forks[i]);
+	free(table->forks);
+}
+
+void	destroy_all_mutex(t_table *table, t_philo *philos, int i)
 {
 	if (!table && !philos)
 		return ;
-	if (table && philos)
-		free_philosophers(philos, table->nbr_philos);
-	free_table(table);
+	while (--i >= 0)
+		pthread_join(philos[i].thread, NULL);
+	destroy_mutex_info(table, table->nbr_philos);
+	exit(EXIT_FAILURE);
 }
-
