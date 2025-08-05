@@ -34,7 +34,7 @@
 # define ERROR1	"Usage: number_philo, t_die, t_eat, t_sleep, [meals]\n"
 # define ERROR2 "Usage: Use valid integer between 0 and 2147483647.\n"
 # define ERROR3	"Cannot be allocated"
-# define ERROR4 "Error: nbr of philosphers should not exceed 200\n"
+# define ERROR4 "Error: number of philosophers > 200 is not supported.\n"
 
 # define PHILO_MAX 200
 
@@ -64,7 +64,6 @@ typedef struct s_philo
 	pthread_mutex_t	*r_fork;
 	t_table			*table;
 }	t_philo;
-
 
 /*init_philos*/
 void		init_args(t_table *data, char **argv);

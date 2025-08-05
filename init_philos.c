@@ -33,7 +33,7 @@ static int	init_mutex(t_table *table)
 	if (!table->forks)
 		return (destroy_mutex_lock(table), 1);
 	i = -1;
-	while (--i < table->nbr_philos)
+	while (++i < table->nbr_philos)
 	{
 		if (pthread_mutex_init(&table->forks[i], NULL))
 			return (destroy_mutex_info(table, i), 1);

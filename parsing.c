@@ -75,8 +75,12 @@ void	check_args(int argc, char *argv[])
 	}
 	while (i < argc)
 	{
-		if (!is_valid_number(argv[i]) || ft_atol(argv[i]) > INT_MAX)
+		if (!is_valid_number(argv[i]) || ft_atol(argv[i]) > INT_MAX
+			|| ft_atol(argv[i]) <= 0)
+		{
 			write(2, ERROR2, ft_strlen(ERROR2));
+			exit(EXIT_FAILURE);
+		}
 		i++;
 	}
 }

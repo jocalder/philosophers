@@ -21,5 +21,5 @@ int	main(int argc, char **argv)
 	init_args(&data, argv);
 	init_philosophers(&data, &philos);
 	start_simulation(&data, philos);
-	return (0);
+	exit(EXIT_SUCCESS);
 }
