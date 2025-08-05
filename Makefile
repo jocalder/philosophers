@@ -1,7 +1,7 @@
 
 NAME	= philo
 
-CC		= gcc -g3 -fsanitize=address
+CC		= cc
 
 FLAGS	= -Wall -Wextra -Werror
 

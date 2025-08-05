@@ -16,8 +16,7 @@ void	*single_philo_case(t_philo *philo)
 {
 	pthread_mutex_lock(philo->l_fork);
 	print_action(philo, "has taken a fork", YELLOW);
-	usleep(philo->table->time_to_die * 1);
-	print_action(philo, "died", RED);
+	usleep(philo->table->time_to_die * 1000);
 	pthread_mutex_unlock(philo->l_fork);
 	return (NULL);
 }
