@@ -16,14 +16,15 @@ void	forks(t_philo *p, pthread_mutex_t **f, pthread_mutex_t **s, bool even)
 {
 	if (even)
 	{
-		*f = p->r_fork;
-		*s = p->l_fork;
+		*f = p->l_fork;
+		*s = p->r_fork;
 		usleep(100);
 	}
 	else
 	{
-		*f = p->l_fork;
-		*s = p->r_fork;
+		*f = p->r_fork;
+		*s = p->l_fork;
+		usleep(500);
 	}
 }
 
@@ -87,4 +88,5 @@ bool	is_sleeping(t_philo *philo, t_table *table)
 void	is_thinking(t_philo *philo)
 {
 	print_action(philo, "is thinking", BLUE);
+	usleep(10);
 }
